@@ -1,0 +1,258 @@
+16:41:43 INFO    原始数据：评分 1,000,209 条 / 电影 3,883 部 / 用户 6,040 人
+16:41:43 INFO    切分完成：用户 6040 / 物品 3883 / 训练 988,129 验证 6,040 测试 6,040 (训练集稠密度 4.213%)
+16:41:43 INFO    泄漏自检通过：train ∩ valid = train ∩ test = ∅
+16:41:43 INFO    [itemknn] 开始训练
+16:41:45 INFO    [itemknn] 相似度矩阵稀疏度 0.8931%（top-40 邻居）
+16:41:45 INFO    [itemknn] 训练完成，耗时 1.1s
+16:41:45 INFO    [itemknn] 打分矩阵 (6040, 3883)，推理耗时 0.6s
+16:41:45 INFO    [itemcf] 开始训练
+16:41:46 INFO    [itemcf] 隐式相似度稀疏度 0.8936%（top-40 邻居）
+16:41:46 INFO    [itemcf] 训练完成，耗时 0.5s
+16:41:46 INFO    [itemcf] 打分矩阵 (6040, 3883)，推理耗时 0.3s
+16:41:46 INFO    [mf] 开始训练
+16:41:47 INFO    [mf] epoch  1/40  train_mse=1.0798  valid_rmse=1.0024
+16:41:47 INFO    [mf] epoch  2/40  train_mse=0.8575  valid_rmse=0.9261
+16:41:47 INFO    [mf] epoch  3/40  train_mse=0.8092  valid_rmse=0.9061
+16:41:47 INFO    [mf] epoch  4/40  train_mse=0.7853  valid_rmse=0.8967
+16:41:48 INFO    [mf] epoch  5/40  train_mse=0.7693  valid_rmse=0.8910
+16:41:48 INFO    [mf] epoch  6/40  train_mse=0.7568  valid_rmse=0.8871
+16:41:48 INFO    [mf] epoch  7/40  train_mse=0.7469  valid_rmse=0.8866
+16:41:48 INFO    [mf] epoch  8/40  train_mse=0.7388  valid_rmse=0.8867
+16:41:48 INFO    [mf] epoch  9/40  train_mse=0.7321  valid_rmse=0.8872
+16:41:49 INFO    [mf] epoch 10/40  train_mse=0.7263  valid_rmse=0.8886
+16:41:49 INFO    [mf] epoch 11/40  train_mse=0.7216  valid_rmse=0.8889
+16:41:49 INFO    [mf] 验证 RMSE 连续 4 轮无提升，早停于第 11 轮
+16:41:49 INFO    [mf] 训练完成，耗时 2.8s
+16:41:49 INFO    [mf] 打分矩阵 (6040, 3883)，推理耗时 0.0s
+16:41:49 INFO    [neumf] 开始训练
+16:41:57 INFO    [neumf] epoch 1/25  bce=0.3770  valid_HR@10=0.5276
+16:42:05 INFO    [neumf] epoch 2/25  bce=0.3001  valid_HR@10=0.6065
+16:42:14 INFO    [neumf] epoch 3/25  bce=0.2788  valid_HR@10=0.6432
+16:42:22 INFO    [neumf] epoch 4/25  bce=0.2671  valid_HR@10=0.6632
+16:42:29 INFO    [neumf] epoch 5/25  bce=0.2581  valid_HR@10=0.6753
+16:42:36 INFO    [neumf] epoch 6/25  bce=0.2506  valid_HR@10=0.6887
+16:42:43 INFO    [neumf] epoch 7/25  bce=0.2442  valid_HR@10=0.7008
+16:42:51 INFO    [neumf] epoch 8/25  bce=0.2387  valid_HR@10=0.7036
+16:42:59 INFO    [neumf] epoch 9/25  bce=0.2339  valid_HR@10=0.7103
+16:43:06 INFO    [neumf] epoch 10/25  bce=0.2296  valid_HR@10=0.7146
+16:43:13 INFO    [neumf] epoch 11/25  bce=0.2250  valid_HR@10=0.7171
+16:43:20 INFO    [neumf] epoch 12/25  bce=0.2214  valid_HR@10=0.7202
+16:43:28 INFO    [neumf] epoch 13/25  bce=0.2181  valid_HR@10=0.7233
+16:43:35 INFO    [neumf] epoch 14/25  bce=0.2156  valid_HR@10=0.7240
+16:43:43 INFO    [neumf] epoch 15/25  bce=0.2128  valid_HR@10=0.7230
+16:43:50 INFO    [neumf] epoch 16/25  bce=0.2107  valid_HR@10=0.7272
+16:43:57 INFO    [neumf] epoch 17/25  bce=0.2087  valid_HR@10=0.7281
+16:44:05 INFO    [neumf] epoch 18/25  bce=0.2068  valid_HR@10=0.7250
+16:44:12 INFO    [neumf] epoch 19/25  bce=0.2056  valid_HR@10=0.7212
+16:44:12 INFO    [neumf] 验证 HR 连续 2 轮无提升，早停于第 19 轮
+16:44:12 INFO    [neumf] 训练完成，耗时 143.3s
+16:44:14 INFO    [neumf] 打分矩阵 (6040, 3883)，推理耗时 1.6s
+16:44:14 INFO    [content] 开始训练
+16:44:14 INFO    [content] TF-IDF 维度 3883 × 4373（非零 0.108%）
+16:44:14 INFO    [content] 训练完成，耗时 0.1s
+16:44:14 INFO    [content] 打分矩阵 (6040, 3883)，推理耗时 0.3s
+16:44:14 INFO    [popularity] 开始训练
+16:44:14 INFO    [popularity] 训练完成，耗时 0.0s
+16:44:14 INFO    [popularity] 打分矩阵 (6040, 3883)，推理耗时 0.0s
+16:44:14 INFO    [random] 开始训练
+16:44:14 INFO    [random] 训练完成，耗时 0.0s
+16:44:14 INFO    [random] 打分矩阵 (6040, 3883)，推理耗时 0.0s
+16:44:14 INFO    [fusion] 权重网格搜索：1001 种组合 × 800 位验证用户
+16:44:21 INFO    [fusion] 最优权重 {'itemknn': np.float64(0.2), 'itemcf': np.float64(0.1), 'mf': np.float64(0.1), 'neumf': np.float64(0.5), 'content': np.float64(0.1)}（验证 nDCG@10=0.0641）
+16:44:22 INFO    候选集自检通过：6040 个测试正例全部在候选集内
+16:44:22 INFO    ── 单模型 itemknn ─────────────────────────────────────────────────
+   Precision@10                   0.0019
+   Recall@10                      0.0190
+   F1@10                          0.0035
+   nDCG@10                        0.0190
+   HR@10                          0.0190
+   MRR                            0.0213
+   MedianRank                  1086.0000
+   Coverage                       0.6348
+   CoveredItems                2465.0000
+   Diversity                      0.7957
+   Novelty                        7.4220
+   Gini                           0.8521
+   Top1%ItemShare                 0.4220
+   EvalUsers                   6040.0000
+   HR@10(sampled)                 0.2248
+   nDCG@10(sampled)               0.1048
+   MRR(sampled)                   0.0938
+   AUC(sampled)                   0.6292
+16:44:23 INFO    ── 单模型 itemcf ──────────────────────────────────────────────────
+   Precision@10                   0.0076
+   Recall@10                      0.0762
+   F1@10                          0.0138
+   nDCG@10                        0.0378
+   HR@10                          0.0762
+   MRR                            0.0372
+   MedianRank                   181.5000
+   Coverage                       0.3235
+   CoveredItems                1256.0000
+   Diversity                      0.6883
+   Novelty                        2.3052
+   Gini                           0.9164
+   Top1%ItemShare                 0.2807
+   EvalUsers                   6040.0000
+   HR@10(sampled)                 0.6684
+   nDCG@10(sampled)               0.3913
+   MRR(sampled)                   0.3227
+   AUC(sampled)                   0.8909
+16:44:23 INFO    ── 单模型 mf ──────────────────────────────────────────────────────
+   Precision@10                   0.0023
+   Recall@10                      0.0225
+   F1@10                          0.0041
+   nDCG@10                        0.0118
+   HR@10                          0.0225
+   MRR                            0.0127
+   MedianRank                  1059.0000
+   Coverage                       0.2859
+   CoveredItems                1110.0000
+   Diversity                      0.7528
+   Novelty                        4.2528
+   Gini                           0.9574
+   Top1%ItemShare                 0.5319
+   EvalUsers                   6040.0000
+   HR@10(sampled)                 0.2748
+   nDCG@10(sampled)               0.1485
+   MRR(sampled)                   0.1321
+   AUC(sampled)                   0.6255
+16:44:24 INFO    ── 单模型 neumf ───────────────────────────────────────────────────
+   Precision@10                   0.0079
+   Recall@10                      0.0795
+   F1@10                          0.0144
+   nDCG@10                        0.0398
+   HR@10                          0.0795
+   MRR                            0.0396
+   MedianRank                   159.0000
+   Coverage                       0.4757
+   CoveredItems                1847.0000
+   Diversity                      0.7063
+   Novelty                        2.5440
+   Gini                           0.8699
+   Top1%ItemShare                 0.2385
+   EvalUsers                   6040.0000
+   HR@10(sampled)                 0.6917
+   nDCG@10(sampled)               0.4147
+   MRR(sampled)                   0.3448
+   AUC(sampled)                   0.9046
+16:44:24 INFO    ── 单模型 content ─────────────────────────────────────────────────
+   Precision@10                   0.0012
+   Recall@10                      0.0119
+   F1@10                          0.0022
+   nDCG@10                        0.0059
+   HR@10                          0.0119
+   MRR                            0.0073
+   MedianRank                  1632.0000
+   Coverage                       0.5735
+   CoveredItems                2227.0000
+   Diversity                      0.5650
+   Novelty                        5.6398
+   Gini                           0.8716
+   Top1%ItemShare                 0.3417
+   EvalUsers                   6040.0000
+   HR@10(sampled)                 0.1980
+   nDCG@10(sampled)               0.1027
+   MRR(sampled)                   0.0946
+   AUC(sampled)                   0.5280
+16:44:24 INFO    ── 单模型 popularity ──────────────────────────────────────────────
+   Precision@10                   0.0037
+   Recall@10                      0.0369
+   F1@10                          0.0067
+   nDCG@10                        0.0180
+   HR@10                          0.0369
+   MRR                            0.0199
+   MedianRank                   413.0000
+   Coverage                       0.0512
+   CoveredItems                 199.0000
+   Diversity                      0.7494
+   Novelty                        1.2831
+   Gini                           0.9933
+   Top1%ItemShare                 0.9437
+   EvalUsers                   6040.0000
+   HR@10(sampled)                 0.4733
+   nDCG@10(sampled)               0.2602
+   MRR(sampled)                   0.2177
+   AUC(sampled)                   0.8221
+16:44:25 INFO    ── 单模型 random ──────────────────────────────────────────────────
+   Precision@10                   0.0002
+   Recall@10                      0.0023
+   F1@10                          0.0004
+   nDCG@10                        0.0010
+   HR@10                          0.0023
+   MRR                            0.0021
+   MedianRank                  1812.5000
+   Coverage                       1.0000
+   CoveredItems                3883.0000
+   Diversity                      0.8242
+   Novelty                        6.4929
+   Gini                           0.1468
+   Top1%ItemShare                 0.0174
+   EvalUsers                   6040.0000
+   HR@10(sampled)                 0.1013
+   nDCG@10(sampled)               0.0438
+   MRR(sampled)                   0.0497
+   AUC(sampled)                   0.5061
+16:44:25 INFO    ── 混合推荐系统 ──────────────────────────────────────────────────────
+   Precision@10                   0.0080
+   Recall@10                      0.0796
+   F1@10                          0.0145
+   nDCG@10                        0.0382
+   HR@10                          0.0796
+   MRR                            0.0374
+   MedianRank                   157.0000
+   Coverage                       0.4028
+   CoveredItems                1564.0000
+   Diversity                      0.7009
+   Novelty                        2.4493
+   Gini                           0.8948
+   Top1%ItemShare                 0.2747
+   EvalUsers                   6040.0000
+   HR@10(sampled)                 0.6873
+   nDCG@10(sampled)               0.4136
+   MRR(sampled)                   0.3415
+   AUC(sampled)                   0.8609
+16:44:25 INFO    回归指标 itemknn                MAE=0.7382 RMSE=0.9569 NMAE=0.1846 NRMSE=0.2392
+16:44:25 INFO    回归指标 mf                     MAE=0.7175 RMSE=0.9083 NMAE=0.1794 NRMSE=0.2271
+16:44:25 INFO    回归指标 global_mean(baseline)  MAE=0.9893 RMSE=1.1756 NMAE=0.2473 NRMSE=0.2939
+
+热度惩罚消融（全候选排序协议）
+                     设置  HR@10  nDCG@10  Coverage  CoveredItems  Novelty   Gini
+         修正公式 alpha=0.0 0.0791   0.0383    0.3724     1446.0000   2.3532 0.9067
+        修正公式 alpha=0.05 0.0796   0.0385    0.3873     1504.0000   2.3996 0.9010
+         修正公式 alpha=0.1 0.0796   0.0382    0.4028     1564.0000   2.4493 0.8948
+         修正公式 alpha=0.2 0.0781   0.0372    0.4394     1706.0000   2.5538 0.8813
+         修正公式 alpha=0.4 0.0732   0.0344    0.5241     2035.0000   2.8215 0.8446
+原实现公式 score*(1-0.2*pop) 0.0022   0.0014    0.3049     1184.0000   3.1349 0.9246
+
+原实现 bug 的 2×2 受控对照（同一份数据切分、同一批模型）
+热度惩罚 bug 候选集 bug     对应版本  Precision@10  Recall@10  F1@10  nDCG@10  HR@10    AUC  Coverage  CoveredItems  Novelty  正例在候选集内比例
+       关       关      本实现        0.0067     0.0666 0.0121   0.0312 0.0666 0.8257    0.3693     1434.0000   2.3504     1.0000
+       开       关 单 bug 对照        0.0000     0.0002 0.0000   0.0002 0.0002 0.1543    0.0577      224.0000  12.5602     1.0000
+       关       开 单 bug 对照        0.0000     0.0000 0.0000   0.0000 0.0000 0.0000    0.3693     1434.0000   2.3527     0.0000
+       开       开      原实现        0.0000     0.0000 0.0000   0.0000 0.0000 0.8677    0.0577      224.0000  12.5602     0.0000
+
+── 最终：混合推荐系统（全候选排序） ────────────────────────────────────────────
+   Precision@10                   0.0080
+   Recall@10                      0.0796
+   F1@10                          0.0145
+   nDCG@10                        0.0382
+   HR@10                          0.0796
+   MRR                            0.0374
+   MedianRank                   157.0000
+   Coverage                       0.4028
+   CoveredItems                1564.0000
+   Diversity                      0.7009
+   Novelty                        2.4493
+   Gini                           0.8948
+   Top1%ItemShare                 0.2747
+   EvalUsers                   6040.0000
+   HR@10(sampled)                 0.6873
+   nDCG@10(sampled)               0.4136
+   MRR(sampled)                   0.3415
+   AUC(sampled)                   0.8609
+
+最优融合权重: {'itemknn': np.float64(0.2), 'itemcf': np.float64(0.1), 'mf': np.float64(0.1), 'neumf': np.float64(0.5), 'content': np.float64(0.1)}
+输出 recommendations: outputs/frozen_v2/recommendations_20260831_164432.csv
+输出 metrics: outputs/frozen_v2/metrics_20260831_164432.json
+总耗时 2.8 分钟

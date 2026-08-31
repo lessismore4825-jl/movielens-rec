@@ -1,0 +1,4 @@
+-r requirements.txt
+
+# Optional semantic content encoder for --use-sbert
+sentence-transformers>=2.2

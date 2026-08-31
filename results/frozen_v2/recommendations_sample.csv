@@ -1,0 +1,201 @@
+userId,rank,movieId,title,genres,score
+1,1,364,"Lion King, The (1994)",Animation|Children's|Musical,0.9137431
+1,2,2096,Sleeping Beauty (1959),Animation|Children's|Musical,0.8925595
+1,3,318,"Shawshank Redemption, The (1994)",Drama,0.89116114
+1,4,34,Babe (1995),Children's|Comedy|Drama,0.874782
+1,5,1282,Fantasia (1940),Animation|Children's|Musical,0.87293136
+1,6,953,It's a Wonderful Life (1946),Drama,0.8644609
+1,7,2087,Peter Pan (1953),Animation|Children's|Fantasy|Musical,0.8504329
+1,8,2081,"Little Mermaid, The (1989)",Animation|Children's|Comedy|Musical|Romance,0.84061825
+1,9,1225,Amadeus (1984),Drama,0.83999634
+1,10,1032,Alice in Wonderland (1951),Animation|Children's|Musical,0.836383
+2,1,1704,Good Will Hunting (1997),Drama,0.909792
+2,2,527,Schindler's List (1993),Drama|War,0.86966586
+2,3,150,Apollo 13 (1995),Drama,0.85313135
+2,4,1302,Field of Dreams (1989),Drama,0.8225861
+2,5,1231,"Right Stuff, The (1983)",Drama,0.81937456
+2,6,3098,"Natural, The (1984)",Drama,0.8022522
+2,7,1961,Rain Man (1988),Drama,0.8007953
+2,8,1393,Jerry Maguire (1996),Drama|Romance,0.7999629
+2,9,953,It's a Wonderful Life (1946),Drama,0.78666955
+2,10,1580,Men in Black (1997),Action|Adventure|Comedy|Sci-Fi,0.77443826
+3,1,110,Braveheart (1995),Action|Drama|War,0.90415335
+3,2,1220,"Blues Brothers, The (1980)",Action|Comedy|Musical,0.87716115
+3,3,2791,Airplane! (1980),Comedy,0.8738095
+3,4,2028,Saving Private Ryan (1998),Action|Drama|War,0.85739094
+3,5,2797,Big (1988),Comedy|Fantasy,0.8438747
+3,6,2000,Lethal Weapon (1987),Action|Comedy|Crime|Drama,0.8282465
+3,7,2174,Beetlejuice (1988),Comedy|Fantasy,0.81687397
+3,8,2804,"Christmas Story, A (1983)",Comedy|Drama,0.8165436
+3,9,457,"Fugitive, The (1993)",Action|Thriller,0.81403756
+3,10,592,Batman (1989),Action|Adventure|Crime|Drama,0.80983156
+4,1,858,"Godfather, The (1972)",Action|Crime|Drama,0.9052878
+4,2,1304,Butch Cassidy and the Sundance Kid (1969),Action|Comedy|Western,0.8888058
+4,3,2949,Dr. No (1962),Action,0.88593924
+4,4,2944,"Dirty Dozen, The (1967)",Action|War,0.87766737
+4,5,2019,Seven Samurai (The Magnificent Seven) (Shichinin no samurai) (1954),Action|Drama,0.86633134
+4,6,1221,"Godfather: Part II, The (1974)",Action|Crime|Drama,0.8564879
+4,7,2948,From Russia with Love (1963),Action,0.8535356
+4,8,1262,"Great Escape, The (1963)",Adventure|War,0.84929085
+4,9,969,"African Queen, The (1951)",Action|Adventure|Romance|War,0.83979356
+4,10,589,Terminator 2: Judgment Day (1991),Action|Sci-Fi|Thriller,0.8366814
+5,1,223,Clerks (1994),Comedy,0.9108588
+5,2,778,Trainspotting (1996),Drama,0.88531446
+5,3,2396,Shakespeare in Love (1998),Comedy|Romance,0.8823426
+5,4,3160,Magnolia (1999),Drama,0.87996006
+5,5,1673,Boogie Nights (1997),Drama,0.86905456
+5,6,2336,Elizabeth (1998),Drama,0.8585417
+5,7,1094,"Crying Game, The (1992)",Drama|Romance|War,0.85179186
+5,8,3481,High Fidelity (2000),Comedy,0.8479049
+5,9,247,Heavenly Creatures (1994),Drama|Fantasy|Romance|Thriller,0.83294684
+5,10,2710,"Blair Witch Project, The (1999)",Horror,0.8287029
+6,1,899,Singin' in the Rain (1952),Musical|Romance,0.91862214
+6,2,2080,Lady and the Tramp (1955),Animation|Children's|Comedy|Musical|Romance,0.9168286
+6,3,1022,Cinderella (1950),Animation|Children's|Musical,0.8983816
+6,4,919,"Wizard of Oz, The (1939)",Adventure|Children's|Drama|Musical,0.84421897
+6,5,2941,South Pacific (1958),Musical|Romance|War,0.83531696
+6,6,2565,"King and I, The (1956)",Musical,0.8324294
+6,7,1951,Oliver! (1968),Musical,0.81982183
+6,8,1307,When Harry Met Sally... (1989),Comedy|Romance,0.7987726
+6,9,3512,Return to Me (2000),Drama|Romance,0.7915448
+6,10,356,Forrest Gump (1994),Comedy|Romance|War,0.7896406
+7,1,1370,Die Hard 2 (1990),Action|Thriller,0.9051993
+7,2,260,Star Wars: Episode IV - A New Hope (1977),Action|Adventure|Fantasy|Sci-Fi,0.9016029
+7,3,1036,Die Hard (1988),Action|Thriller,0.89272416
+7,4,1240,"Terminator, The (1984)",Action|Sci-Fi|Thriller,0.8911367
+7,5,593,"Silence of the Lambs, The (1991)",Drama|Thriller,0.8844816
+7,6,1198,Raiders of the Lost Ark (1981),Action|Adventure,0.88234496
+7,7,1214,Alien (1979),Action|Horror|Sci-Fi|Thriller,0.87408876
+7,8,10,GoldenEye (1995),Action|Adventure|Thriller,0.87388396
+7,9,1608,Air Force One (1997),Action|Thriller,0.8691202
+7,10,1210,Star Wars: Episode VI - Return of the Jedi (1983),Action|Adventure|Romance|Sci-Fi|War,0.86722285
+8,1,593,"Silence of the Lambs, The (1991)",Drama|Thriller,0.90343684
+8,2,318,"Shawshank Redemption, The (1994)",Drama,0.88492554
+8,3,356,Forrest Gump (1994),Comedy|Romance|War,0.8601525
+8,4,1408,"Last of the Mohicans, The (1992)",Action|Romance|War,0.84684104
+8,5,1358,Sling Blade (1996),Drama|Thriller,0.8408505
+8,6,590,Dances with Wolves (1990),Adventure|Drama|Western,0.84011376
+8,7,2890,Three Kings (1999),Drama|War,0.8350532
+8,8,2762,"Sixth Sense, The (1999)",Thriller,0.8326501
+8,9,780,Independence Day (ID4) (1996),Action|Sci-Fi|War,0.82881635
+8,10,778,Trainspotting (1996),Drama,0.8226254
+9,1,296,Pulp Fiction (1994),Crime|Drama,0.90561575
+9,2,356,Forrest Gump (1994),Comedy|Romance|War,0.8532382
+9,3,110,Braveheart (1995),Action|Drama|War,0.8430406
+9,4,2329,American History X (1998),Drama,0.82210594
+9,5,2997,Being John Malkovich (1999),Comedy,0.8039345
+9,6,34,Babe (1995),Children's|Comedy|Drama,0.79721934
+9,7,2501,October Sky (1999),Drama,0.7971862
+9,8,32,Twelve Monkeys (1995),Drama|Sci-Fi,0.7971077
+9,9,2396,Shakespeare in Love (1998),Comedy|Romance,0.7950766
+9,10,589,Terminator 2: Judgment Day (1991),Action|Sci-Fi|Thriller,0.7849215
+10,1,3479,Ladyhawke (1985),Adventure|Fantasy|Romance,0.92261946
+10,2,1246,Dead Poets Society (1989),Drama,0.9126037
+10,3,11,"American President, The (1995)",Comedy|Drama|Romance,0.9000535
+10,4,2406,Romancing the Stone (1984),Action|Adventure|Comedy|Romance,0.8869807
+10,5,34,Babe (1995),Children's|Comedy|Drama,0.88484085
+10,6,1968,"Breakfast Club, The (1985)",Comedy|Drama,0.8844224
+10,7,3033,Spaceballs (1987),Comedy|Sci-Fi,0.88081646
+10,8,440,Dave (1993),Comedy|Romance,0.8778625
+10,9,3448,"Good Morning, Vietnam (1987)",Comedy|Drama|War,0.8674091
+10,10,3396,"Muppet Movie, The (1979)",Children's|Comedy,0.86537117
+11,1,296,Pulp Fiction (1994),Crime|Drama,0.90561575
+11,2,223,Clerks (1994),Comedy,0.8030567
+11,3,1517,Austin Powers: International Man of Mystery (1997),Comedy,0.80194247
+11,4,2395,Rushmore (1998),Comedy,0.7993644
+11,5,3253,Wayne's World (1992),Comedy,0.7991806
+11,6,1060,Swingers (1996),Comedy|Drama,0.79911035
+11,7,527,Schindler's List (1993),Drama|War,0.79624164
+11,8,2324,Life Is Beautiful (La Vita è bella) (1997),Comedy|Drama,0.78788143
+11,9,2028,Saving Private Ryan (1998),Action|Drama|War,0.777779
+11,10,1641,"Full Monty, The (1997)",Comedy,0.7769956
+12,1,260,Star Wars: Episode IV - A New Hope (1977),Action|Adventure|Fantasy|Sci-Fi,0.9016029
+12,2,1219,Psycho (1960),Horror|Thriller,0.87911344
+12,3,1213,GoodFellas (1990),Crime|Drama,0.85706335
+12,4,608,Fargo (1996),Crime|Drama|Thriller,0.8495564
+12,5,1196,Star Wars: Episode V - The Empire Strikes Back (1980),Action|Adventure|Drama|Sci-Fi|War,0.8447723
+12,6,1387,Jaws (1975),Action|Horror,0.8400303
+12,7,1214,Alien (1979),Action|Horror|Sci-Fi|Thriller,0.8367245
+12,8,318,"Shawshank Redemption, The (1994)",Drama,0.83504057
+12,9,1208,Apocalypse Now (1979),Drama|War,0.8323067
+12,10,296,Pulp Fiction (1994),Crime|Drama,0.83187586
+13,1,1240,"Terminator, The (1984)",Action|Sci-Fi|Thriller,0.90612465
+13,2,1200,Aliens (1986),Action|Sci-Fi|Thriller|War,0.8905518
+13,3,541,Blade Runner (1982),Film-Noir|Sci-Fi,0.7879715
+13,4,924,2001: A Space Odyssey (1968),Drama|Mystery|Sci-Fi|Thriller,0.78611416
+13,5,733,"Rock, The (1996)",Action|Adventure|Thriller,0.77447015
+13,6,1214,Alien (1979),Action|Horror|Sci-Fi|Thriller,0.76828575
+13,7,1408,"Last of the Mohicans, The (1992)",Action|Romance|War,0.7621399
+13,8,3527,Predator (1987),Action|Sci-Fi|Thriller,0.76160556
+13,9,1275,Highlander (1986),Action|Adventure,0.7385843
+13,10,1036,Die Hard (1988),Action|Thriller,0.7336361
+14,1,2908,Boys Don't Cry (1999),Drama,0.91717553
+14,2,2712,Eyes Wide Shut (1999),Drama,0.9095989
+14,3,2599,Election (1999),Comedy,0.9007454
+14,4,2710,"Blair Witch Project, The (1999)",Horror,0.8938812
+14,5,3176,"Talented Mr. Ripley, The (1999)",Drama|Mystery|Thriller,0.88801694
+14,6,3160,Magnolia (1999),Drama,0.88530004
+14,7,912,Casablanca (1942),Drama|Romance|War,0.8821025
+14,8,260,Star Wars: Episode IV - A New Hope (1977),Action|Adventure|Fantasy|Sci-Fi,0.8698523
+14,9,2333,Gods and Monsters (1998),Drama,0.8682734
+14,10,2716,Ghostbusters (1984),Comedy|Horror,0.8682408
+15,1,608,Fargo (1996),Crime|Drama|Thriller,0.90381706
+15,2,454,"Firm, The (1993)",Drama|Thriller,0.8956553
+15,3,2353,Enemy of the State (1998),Action|Thriller,0.8853237
+15,4,590,Dances with Wolves (1990),Adventure|Drama|Western,0.8836916
+15,5,349,Clear and Present Danger (1994),Action|Adventure|Thriller,0.87311393
+15,6,16,Casino (1995),Drama|Thriller,0.87201095
+15,7,150,Apollo 13 (1995),Drama,0.8569354
+15,8,589,Terminator 2: Judgment Day (1991),Action|Sci-Fi|Thriller,0.8506472
+15,9,350,"Client, The (1994)",Drama|Mystery|Thriller,0.84730846
+15,10,377,Speed (1994),Action|Romance|Thriller,0.846701
+16,1,2694,Big Daddy (1999),Comedy,0.91805685
+16,2,1513,Romy and Michele's High School Reunion (1997),Comedy,0.8850847
+16,3,3157,Stuart Little (1999),Children's|Comedy,0.8616209
+16,4,2706,American Pie (1999),Comedy,0.822124
+16,5,2541,Cruel Intentions (1999),Drama,0.8059573
+16,6,2598,Pushing Tin (1999),Comedy,0.7982313
+16,7,2688,"General's Daughter, The (1999)",Drama|Thriller,0.7941817
+16,8,2605,Entrapment (1999),Crime|Thriller,0.79282355
+16,9,2709,Muppets From Space (1999),Children's|Comedy,0.78347176
+16,10,24,Powder (1995),Drama|Sci-Fi,0.7789664
+17,1,1199,Brazil (1985),Sci-Fi,0.91617614
+17,2,2968,Time Bandits (1981),Adventure|Fantasy|Sci-Fi,0.9113785
+17,3,608,Fargo (1996),Crime|Drama|Thriller,0.8914084
+17,4,2628,Star Wars: Episode I - The Phantom Menace (1999),Action|Adventure|Fantasy|Sci-Fi,0.8329387
+17,5,2997,Being John Malkovich (1999),Comedy,0.82648945
+17,6,671,Mystery Science Theater 3000: The Movie (1996),Comedy|Sci-Fi,0.8232833
+17,7,1266,Unforgiven (1992),Western,0.81463283
+17,8,1372,Star Trek VI: The Undiscovered Country (1991),Action|Adventure|Sci-Fi,0.80806655
+17,9,1375,Star Trek III: The Search for Spock (1984),Action|Adventure|Sci-Fi,0.8006555
+17,10,1965,Repo Man (1984),Comedy|Sci-Fi,0.79718494
+18,1,2138,Watership Down (1978),Animation|Children's|Drama|Fantasy,0.9296651
+18,2,1566,Hercules (1997),Adventure|Animation|Children's|Comedy|Musical,0.91362303
+18,3,2174,Beetlejuice (1988),Comedy|Fantasy,0.8873922
+18,4,661,James and the Giant Peach (1996),Animation|Children's|Musical,0.876271
+18,5,2761,"Iron Giant, The (1999)",Animation|Children's,0.87111276
+18,6,1222,Full Metal Jacket (1987),Action|Drama|War,0.8694026
+18,7,1030,Pete's Dragon (1977),Adventure|Animation|Children's|Musical,0.8679931
+18,8,2687,Tarzan (1999),Animation|Children's,0.8610964
+18,9,1031,Bedknobs and Broomsticks (1971),Adventure|Children's|Musical,0.8495381
+18,10,1225,Amadeus (1984),Drama,0.843265
+19,1,3578,Gladiator (2000),Action|Drama,0.90736127
+19,2,2916,Total Recall (1990),Action|Adventure|Sci-Fi|Thriller,0.8785857
+19,3,2706,American Pie (1999),Comedy,0.87082386
+19,4,2997,Being John Malkovich (1999),Comedy,0.8503524
+19,5,2396,Shakespeare in Love (1998),Comedy|Romance,0.8447263
+19,6,1136,Monty Python and the Holy Grail (1974),Comedy,0.8377676
+19,7,1954,Rocky (1976),Action|Drama,0.8329652
+19,8,2791,Airplane! (1980),Comedy,0.82943916
+19,9,1333,"Birds, The (1963)",Horror,0.80457026
+19,10,780,Independence Day (ID4) (1996),Action|Sci-Fi|War,0.80434644
+20,1,50,"Usual Suspects, The (1995)",Crime|Thriller,0.9080261
+20,2,608,Fargo (1996),Crime|Drama|Thriller,0.9016322
+20,3,780,Independence Day (ID4) (1996),Action|Sci-Fi|War,0.8831787
+20,4,1196,Star Wars: Episode V - The Empire Strikes Back (1980),Action|Adventure|Drama|Sci-Fi|War,0.8795159
+20,5,3793,X-Men (2000),Action|Sci-Fi,0.8791131
+20,6,593,"Silence of the Lambs, The (1991)",Drama|Thriller,0.8783328
+20,7,296,Pulp Fiction (1994),Crime|Drama,0.8764724
+20,8,2916,Total Recall (1990),Action|Adventure|Sci-Fi|Thriller,0.87458605
+20,9,480,Jurassic Park (1993),Action|Adventure|Sci-Fi,0.8652267
+20,10,1089,Reservoir Dogs (1992),Crime|Thriller,0.86429656

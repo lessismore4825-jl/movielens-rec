@@ -1,0 +1,16 @@
+Frozen V2 Environment
+
+Python: 3.14.5
+Platform: macOS-26.5-arm64-arm-64bit-Mach-O
+Architecture: arm64
+
+NumPy: 2.5.2
+Pandas: 3.0.5
+SciPy: 1.18.1
+scikit-learn: 1.9.0
+PyTorch: 2.13.0
+
+Canonical backend: CPU
+Reference hardware: Apple M5
+Reference memory: 24 GB
+Reference runtime: approximately 2.8 minutes
