@@ -45,3 +45,6 @@ outputs/
 /final_project_snapshot.txt
 /*_audit.txt
 /*_snapshot.txt
+
+# Per-seed working outputs generated during frozen runs
+/results/frozen_v*/seed*/
