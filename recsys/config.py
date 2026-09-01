@@ -70,7 +70,7 @@ class NeuMFConfig:
     mlp_layers: List[int] = field(default_factory=lambda: [64, 32, 16])
     dropout: float = 0.2
     n_negatives: int = 4        # 每个正样本配几个负样本
-    epochs: int = 8
+    epochs: int = 25
     batch_size: int = 8192
     lr: float = 1e-3
     weight_decay: float = 1e-6
