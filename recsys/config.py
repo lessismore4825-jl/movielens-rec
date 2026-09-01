@@ -96,8 +96,34 @@ class FusionConfig:
     normalize: str = "zscore"       # zscore | minmax | rank
     popularity_alpha: float = 0.10  # 热度惩罚强度，取值 [0, 1]；0 表示不惩罚
     search_weights: bool = True     # 是否在验证集上网格搜索权重
-    search_users: int = 800         # 权重搜索所用的采样用户数
+    search_users: int = 0           # 参与权重搜索的验证用户数；0 = 全部
     search_step: float = 0.1        # 网格步长（权重之和固定为 1）
+    search_objective: str = "full"  # full | sampled，见下方说明
+
+
+# ---------------------------------------------------------------------------
+# 关于 search_users 与 search_objective 的默认值
+#
+# 早期版本用 800 位验证用户 + 全候选 nDCG@10 作为权重搜索目标。
+# 全候选协议下验证 nDCG@10 约 0.04，800 位用户合计只有约 48 次命中，
+# 用这个稀疏信号从 1001 个权重组合里挑最优，容易产生较大的选择方差。
+#
+# 受控实验（experiments/weight_search_stability.py，固定同一批打分矩阵、
+# 只重采验证用户子集 12 次）显示：模型参数一字未变，选出的 NeuMF 权重
+# 却在 0.2 ~ 1.0 之间摆动，测试 HR@10 落在 0.0740 ~ 0.0810。
+#
+# 受控实验表明，仅验证用户子采样本身就足以造成明显的权重选择不稳定。
+# 因此 Frozen V4 默认使用全部验证用户，以减少这一已识别的选择方差来源。
+#
+#   800 位用户  / 全候选目标   HR@10 = 0.0777 ± 0.0026   (+2.9% vs 最强单模型)
+#   全部用户    / 全候选目标   HR@10 = 0.0810            (+7.2%)
+#   全部用户    / 采样负例目标 HR@10 = 0.0823            (+9.0%)
+#
+# search_objective 默认为 "full"：搜索目标与最终汇报的主协议一致，
+# 是更保守、也更容易辩护的选择。
+# "sampled" 用 1 正 + 99 负的 nDCG@10 作为低方差代理目标——它的信号密度
+# 高一个数量级（HR≈0.7 而非 0.04），实测还能再好一些，但选择指标与
+# 汇报指标不同，使用时需在结论中写明。
 
 
 @dataclass
@@ -116,6 +142,7 @@ class Config:
     fusion: FusionConfig = field(default_factory=FusionConfig)
     eval: EvalConfig = field(default_factory=EvalConfig)
     seed: int = 42
+    device: str = "cpu"     # cpu | auto | mps | cuda，见 recsys/device.py
 
     def to_dict(self) -> dict:
         d = asdict(self)

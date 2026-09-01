@@ -351,3 +351,190 @@ def test_test_candidate_mask_keeps_only_test_positive(ds):
     assert mask[tu, ti].all()
     assert not mask[vu, vi].any()
     assert not mask[tru, tri].any()
+
+
+# ------------------------------------------------- 负采样健壮性（Frozen V4）
+def test_negative_sampling_terminates_for_saturated_user(ds):
+    """即使某位用户几乎交互过全部物品，负采样也必须在有限轮内返回。
+
+    早期版本用无上界的 `while True` 重采，直到一个冲突都不剩为止。
+    在 ml-1m 上能收敛，但只要存在交互过全部物品的用户就会死循环。
+    现在改为"有上界的快路径 + 精确补集兜底"，既保证有限时间返回，
+    又保证每个负例都是真负例。
+    """
+    from recsys.models.neumf import NeuMFRecommender
+
+    # 构造一位"看过除 1 部之外所有电影"的极端用户
+    blocked = [set() for _ in range(ds.n_users)]
+    blocked[0] = set(range(ds.n_items)) - {7}
+
+    pos_u = np.zeros(64, dtype=np.int64)
+    neg = NeuMFRecommender._sample_negatives(
+        pos_u, ds.n_items, 4, blocked, np.random.default_rng(0))
+
+    assert neg.shape == (64 * 4,)
+    # 唯一合法的负例就是物品 7：兜底必须让每个位置都落在真负例上
+    assert set(neg.tolist()) == {7}
+
+
+def test_negative_sampling_avoids_known_positives(ds):
+    from recsys.models.neumf import NeuMFRecommender
+
+    blocked = [set(a.tolist()) for a in ds.user_train_items()]
+    pos_u = ds.train["u"].to_numpy(np.int64)[:500]
+    neg = NeuMFRecommender._sample_negatives(
+        pos_u, ds.n_items, 4, blocked, np.random.default_rng(1))
+
+    u_rep = np.repeat(pos_u, 4)
+    leaked = sum(1 for u, i in zip(u_rep, neg) if int(i) in blocked[int(u)])
+    assert leaked == 0
+
+
+# ------------------------------------------------- 权重搜索（Frozen V4）
+def test_sampled_search_objective_matches_global_tie_policy(ds):
+    """搜索用的代理目标必须与 positive_rank 使用同一套并列规则。
+
+    否则"验证集上选出的最优权重"和"测试集上汇报的指标"会建立在
+    两套不同的排序语义上。
+    """
+    from recsys.fusion import _sampled_ndcg
+
+    rng = np.random.default_rng(0)
+    n, k = 40, 9
+    pos = rng.integers(0, ds.n_items, size=n)
+    negs = np.stack([rng.choice(np.setdiff1d(np.arange(ds.n_items), [p]),
+                                size=k, replace=False) for p in pos])
+
+    # 全部候选完全同分：并列规则决定一切
+    scores = np.zeros((n, ds.n_items), dtype=np.float32)
+    got = _sampled_ndcg(scores, pos, negs, top_n=10)
+
+    cand = np.concatenate([pos[:, None], negs], axis=1)
+    expect_rank = (cand[:, 1:] < pos[:, None]).sum(axis=1)
+    expect = float(np.where(expect_rank < 10,
+                            1.0 / np.log2(expect_rank + 2.0), 0.0).mean())
+    assert got == pytest.approx(expect)
+
+
+def test_search_users_zero_means_all_validation_users(ds, caplog):
+    """search_users=0 必须使用全部验证用户，而不是退化成 0 个。
+
+    Frozen V3 用 800 位采样用户做搜索，导致选择过程本身过拟合：
+    模型固定不变、只重采验证用户子集，选出的 NeuMF 权重就在 0.2~1.0 间摆动。
+    """
+    from recsys.config import FusionConfig
+    from recsys.fusion import HybridFusion
+
+    cfg = FusionConfig(weights={"a": 1.0}, search_users=0, search_step=0.5)
+    fusion = HybridFusion(cfg)
+    scores = {"a": np.random.default_rng(0).random(
+        (ds.n_users, ds.n_items), dtype=np.float32)}
+
+    with caplog.at_level("INFO", logger="recsys.fusion"):
+        fusion.search_weights(scores, ds, lambda s, t: 0.0,
+                              np.random.default_rng(0))
+    assert f"× {len(ds.valid)} 位验证用户" in caplog.text
+
+
+def test_negative_sampling_rejects_fully_saturated_user(ds):
+    """A fully saturated user has no valid negative candidate.
+
+    The sampler must fail explicitly instead of silently returning a
+    known-positive item as a false negative.
+    """
+    from recsys.models.neumf import NeuMFRecommender
+
+    blocked = [set() for _ in range(ds.n_users)]
+    blocked[0] = set(range(ds.n_items))
+
+    pos_u = np.zeros(4, dtype=np.int64)
+
+    with pytest.raises(ValueError, match="no valid negative candidate"):
+        NeuMFRecommender._sample_negatives(
+            pos_u,
+            ds.n_items,
+            4,
+            blocked,
+            np.random.default_rng(0),
+        )
+
+
+def test_sampled_search_never_uses_positive_as_negative(ds, monkeypatch):
+    """If fewer than 99 legal negatives exist, sampling may repeat legal
+    negatives but must never pad the candidate set with the positive target.
+    """
+    import recsys.fusion as fusion_module
+    from recsys.config import FusionConfig
+    from recsys.fusion import HybridFusion
+
+    cfg = FusionConfig(
+        weights={"a": 1.0},
+        search_users=0,
+        search_step=1.0,
+        search_objective="sampled",
+    )
+    fusion = HybridFusion(cfg)
+
+    scores = {
+        "a": np.random.default_rng(0).random(
+            (ds.n_users, ds.n_items),
+            dtype=np.float32,
+        )
+    }
+
+    # Artificial candidate mask:
+    # each user has exactly 1 positive + 2 legal negatives.
+    # Therefore the sampled-search branch MUST sample with replacement.
+    mask = np.zeros(
+        (ds.n_users, ds.n_items),
+        dtype=bool,
+    )
+
+    valid_u = ds.valid["u"].to_numpy(np.int64)
+    valid_i = ds.valid["i"].to_numpy(np.int64)
+
+    for u, target in zip(valid_u, valid_i):
+        u = int(u)
+        target = int(target)
+
+        neg1 = (target + 1) % ds.n_items
+        neg2 = (target + 2) % ds.n_items
+
+        mask[u, target] = True
+        mask[u, neg1] = True
+        mask[u, neg2] = True
+
+    monkeypatch.setattr(
+        fusion,
+        "candidate_mask",
+        lambda _ds, target="valid": mask,
+    )
+
+    original_sampled_ndcg = fusion_module._sampled_ndcg
+
+    def checked_sampled_ndcg(scores_, pos_, negs_, top_n=10):
+        # Critical invariant:
+        # the held-out positive must never appear in the negative set.
+        assert not np.any(negs_ == pos_[:, None])
+
+        return original_sampled_ndcg(
+            scores_,
+            pos_,
+            negs_,
+            top_n=top_n,
+        )
+
+    monkeypatch.setattr(
+        fusion_module,
+        "_sampled_ndcg",
+        checked_sampled_ndcg,
+    )
+
+    fusion.search_weights(
+        scores,
+        ds,
+        lambda s, t: 0.0,
+        np.random.default_rng(1),
+    )
+
+    assert fusion.search_objective_value_ >= 0.0

@@ -1,0 +1,9 @@
+Python: 3.14.5 (v3.14.5:5607950ef23, May 10 2026, 07:38:09) [Clang 21.0.0 (clang-2100.0.123.102)]
+Platform: macOS-26.5-arm64-arm-64bit-Mach-O
+NumPy: 2.5.2
+Pandas: 3.0.5
+SciPy: 1.18.1
+scikit-learn: 1.9.0
+PyTorch: 2.13.0
+CUDA available: False
+MPS available: True

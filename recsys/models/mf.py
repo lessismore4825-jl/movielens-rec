@@ -23,6 +23,7 @@ from torch import nn
 
 from ..config import MFConfig
 from ..data import Dataset
+from ..device import resolve_device
 from .base import BaseRecommender
 
 logger = logging.getLogger(__name__)
@@ -52,7 +53,7 @@ class MFRecommender(BaseRecommender):
 
     def __init__(self, cfg: MFConfig, device: str = "cpu"):
         self.cfg = cfg
-        self.device = torch.device(device)
+        self.device = resolve_device(device)
 
     def fit(self, ds: Dataset, valid_cb=None) -> "MFRecommender":
         cfg = self.cfg

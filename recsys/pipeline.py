@@ -41,8 +41,8 @@ class Pipeline:
         self.models = [
             ItemKNNRecommender(c.itemknn),
             ItemCFImplicitRecommender(c.itemknn),
-            MFRecommender(c.mf),
-            NeuMFRecommender(c.neumf, seed=c.seed),
+            MFRecommender(c.mf, device=c.device),
+            NeuMFRecommender(c.neumf, device=c.device, seed=c.seed),
             ContentRecommender(c.content),
         ]
         self.baselines = [PopularityRecommender(), RandomRecommender(seed=c.seed)]
@@ -128,8 +128,27 @@ class Pipeline:
 
         results["weights"] = self.fusion.weights
         results["timings"] = self.timings
+        results["training"] = self.training_details()
         self.results = results
         return results
+
+    def training_details(self) -> dict:
+        """记录影响可复现性的训练细节。
+
+        NeuMF 的早停点由验证 HR 的逐轮数值决定，而浮点累加顺序在不同平台上
+        存在微小差异，因此停止轮次是跨平台比对结果时最关键的证据。
+        """
+        out: dict = {"device": self.cfg.device}
+        for m in self.models:
+            entry = {}
+            for attr in ("best_epoch_", "stopped_epoch_", "best_valid_hr_",
+                         "best_valid_rmse_", "valid_hr_history_"):
+                if hasattr(m, attr):
+                    v = getattr(m, attr)
+                    entry[attr.rstrip("_")] = v
+            if entry:
+                out[m.name] = entry
+        return out
 
     # ------------------------------------------------------------ 消融
     def ablate_popularity(self, alphas=(0.0, 0.05, 0.1, 0.2, 0.4)) -> pd.DataFrame:

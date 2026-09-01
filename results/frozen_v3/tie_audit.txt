@@ -1,0 +1,56 @@
+Frozen V2 -> Frozen V3 ranking tie audit
+==========================================
+
+Trigger
+-------
+Frozen V2 ItemKNN reported:
+
+HR@10   = 0.01903973509933775
+nDCG@10 = 0.01903973509933775
+
+Under leave-one-out evaluation, this implied that essentially every
+Top-10 hit was being assigned rank 1.
+
+Read-only diagnostic
+--------------------
+Total Top-10 hits: 115
+
+Rank distribution:
+rank 1: 115
+rank 2-10: 0
+
+Tie diagnostics:
+115 / 115 hits had more than one candidate tied at the positive score.
+0 / 115 had a unique positive score.
+Median tie-block size: 72
+Maximum tie-block size: 666
+
+Root cause
+----------
+The previous evaluator counted only candidates with score strictly
+greater than the held-out positive. Therefore the held-out positive
+received the best possible rank inside every exact-score tie block,
+while Top-N generation did not guarantee the same ordering.
+
+Frozen V3 correction
+--------------------
+Ranking now uses one deterministic rule throughout the pipeline:
+
+1. score descending
+2. internal item index ascending for exact ties
+
+The rule is applied consistently to:
+- Top-N generation
+- full-candidate HR / nDCG / MRR
+- sampled ranking metrics
+- NeuMF validation ranking
+
+After correction, canonical seed-42 ItemKNN became approximately:
+
+HR@10   = 0.005629
+nDCG@10 = 0.002730
+
+Frozen V2 ranking metrics are superseded by Frozen V3.
+
+Frozen V3 uses the same substantive model configuration as the
+canonical Frozen V2 run, including NeuMF max_epochs=25.

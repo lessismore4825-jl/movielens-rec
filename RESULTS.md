@@ -1,285 +1,236 @@
-# Frozen V3 Results
+# Frozen V4 — Detailed Results
 
-Frozen V3 is the canonical audited benchmark for this repository.
+Numbers in this file are the detailed appendix to the summary tables in
+`README.md`. Every value is taken from the frozen evidence bundle in
+`results/frozen_v4/`, which ships with a SHA-256 manifest:
 
-Frozen V2 remains part of the repository history for auditability, but
-its ranking metrics are superseded because its evaluator handled
-exact-score ties optimistically.
+```bash
+cd results/frozen_v4 && sha256sum -c SHA256SUMS.txt
+```
+
+Earlier frozen sets are superseded. Frozen V2's ranking metrics were
+affected by optimistic tie handling; Frozen V3 fixed that but selected
+fusion weights on an 800-user validation subsample, which made the
+selection step overfit. Both defects are documented in the
+*Evaluation Audit* section of `README.md`.
 
 ## Protocol
 
-Dataset: MovieLens-1M.
+Dataset: MovieLens-1M (not redistributed; see `data/README.md`).
 
-- ratings: 1,000,209
-- users: 6,040
-- movies: 3,883
-- train interactions: 988,129
-- validation interactions: 6,040
-- test interactions: 6,040
-- split: chronological per user
-- validation target: penultimate interaction
-- test target: final interaction
-- canonical seed: 42
-- NeuMF maximum epochs: 25
-- NeuMF training negatives: 4 per positive
-- Top-N: 10
-- sampled protocol: 1 positive + 99 negatives
-- fusion search: validation only, 800 users
-- popularity alpha: 0.10
-- SBERT: disabled
+| | |
+|---|---|
+| ratings / users / movies | 1,000,209 / 6,040 / 3,883 |
+| train / validation / test | 988,129 / 6,040 / 6,040 |
+| split | chronological per user, leave-one-out |
+| validation target | penultimate interaction |
+| test target | final interaction |
+| seeds | 42, 43, 44, 45, 46 (canonical: 42) |
+| primary protocol | full-candidate Top-10 ranking |
+| secondary protocol | 1 positive + 99 sampled negatives |
+| tie policy | score descending, then item index ascending |
+| fusion search | validation only, **all 6,040 users**, 0.1-step grid |
+| popularity alpha | 0.10 |
+| NeuMF max epochs | 25, early stop on validation HR@10 (patience 2) |
+| device | CPU |
+| SBERT | disabled |
 
-The primary evaluation protocol is full-candidate ranking over unseen
-items. Sampled ranking is retained as a secondary diagnostic.
+## Canonical run (seed 42), full-candidate ranking
 
-Exact-score ties use the same deterministic rule throughout the
-pipeline:
+The canonical Frozen V4 artifact is the **Mac CPU seed-42 run**.
 
-1. score descending
-2. internal item index ascending
+| Model | HR@10 | nDCG@10 | MRR | Coverage | Gini |
+|---|---:|---:|---:|---:|---:|
+| Random | 0.002318 | 0.001002 | 0.002120 | 1.000000 | 0.146799 |
+| Content (TF-IDF) | 0.011755 | 0.005716 | 0.007101 | 0.573783 | 0.871696 |
+| ItemKNN (rating) | 0.005629 | 0.002730 | 0.004552 | 0.423384 | 0.923819 |
+| Biased MF | 0.022185 | 0.010271 | 0.010802 | 0.277878 | 0.958034 |
+| Popularity | 0.036921 | 0.018033 | 0.019903 | 0.051249 | 0.993279 |
+| Item-CF (implicit) | 0.076159 | 0.037820 | 0.037240 | 0.323461 | 0.916411 |
+| NeuMF | 0.079139 | 0.039406 | 0.039287 | 0.452485 | 0.879955 |
+| **Hybrid** | **0.081126** | **0.039155** | **0.038264** | 0.439866 | 0.878857 |
 
-## Canonical Full-Candidate Ranking
+Under leave-one-out evaluation, every user contributes exactly one
+held-out relevant item. HR@10 is the direct Top-10 hit measure, while
+nDCG@10 and MRR additionally reward better positions in the ranked list.
 
-| Model | HR@10 | nDCG@10 | MRR | MedianRank | Coverage | Novelty | Gini |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| ItemKNN | 0.0056 | 0.0027 | 0.0046 | 1086.0 | 0.4234 | 6.7152 | 0.9238 |
-| Item-CF | 0.0762 | 0.0378 | 0.0372 | 181.5 | 0.3235 | 2.3052 | 0.9164 |
-| Biased MF | 0.0222 | 0.0103 | 0.0108 | 1059.0 | 0.2779 | 4.2472 | 0.9580 |
-| NeuMF | 0.0795 | 0.0398 | 0.0396 | 159.0 | 0.4757 | 2.5440 | 0.8699 |
-| Content (TF-IDF) | 0.0118 | 0.0057 | 0.0071 | 1634.5 | 0.5738 | 5.6481 | 0.8717 |
-| Popularity | 0.0369 | 0.0180 | 0.0199 | 414.0 | 0.0512 | 1.2831 | 0.9933 |
-| Random | 0.0023 | 0.0010 | 0.0021 | 1812.5 | 1.0000 | 6.4929 | 0.1468 |
-| Hybrid | 0.0796 | 0.0382 | 0.0374 | 157.0 | 0.4028 | 2.4493 | 0.8948 |
-
-The canonical seed-42 run is evidence for one frozen run, not a claim
-that the best single-seed system is universally superior.
-
-## Five-Seed Pipeline Robustness
-
-Seeds: 42, 43, 44, 45, 46.
+## Five-seed summary
 
 | System | HR@10 | nDCG@10 | MRR | Coverage |
-| --- | --- | --- | --- | --- |
-| Item-CF | 0.076159 ± 0.000000 | 0.037820 ± 0.000000 | 0.037240 ± 0.000000 | 0.323461 ± 0.000000 |
-| NeuMF | 0.078444 ± 0.001155 | 0.039352 ± 0.000641 | 0.039417 ± 0.000403 | 0.456606 ± 0.011687 |
-| Hybrid | 0.077947 ± 0.005715 | 0.037533 ± 0.003445 | 0.036851 ± 0.003854 | 0.401545 ± 0.031280 |
+|---|---:|---:|---:|---:|
+| Random | 0.002517 ± 0.000932 | 0.001063 ± 0.000427 | 0.002195 ± 0.000337 | 1.000000 |
+| Content (TF-IDF) | 0.011755 | 0.005716 | 0.007101 | 0.573783 |
+| ItemKNN (rating) | 0.005629 | 0.002730 | 0.004552 | 0.423384 |
+| Biased MF | 0.020331 ± 0.002112 | 0.009650 ± 0.000928 | 0.010630 ± 0.000619 | 0.308885 ± 0.027740 |
+| Popularity | 0.036921 | 0.018033 | 0.019903 | 0.051249 |
+| Item-CF (implicit) | 0.076159 | 0.037820 | 0.037240 | 0.323461 |
+| NeuMF | 0.076623 ± 0.002125 | 0.038415 ± 0.000801 | 0.038806 ± 0.001123 | 0.444399 ± 0.028502 |
+| **Hybrid** | **0.083113 ± 0.001350** | **0.040153 ± 0.000696** | **0.039153 ± 0.000723** | 0.413392 ± 0.017109 |
 
-NeuMF achieved the strongest mean full-candidate ranking performance
-among the evaluated individual models:
+### Paired comparison, Hybrid vs strongest single model of each seed
 
-- HR@10 = 0.078444 ± 0.001155
-- nDCG@10 = 0.039352 ± 0.000641
-- MRR = 0.039417 ± 0.000403
-- Coverage = 0.456606 ± 0.011687
+| Seed | Best single | Best single HR@10 | Hybrid HR@10 | Δ HR@10 | Δ nDCG@10 |
+|---:|---|---:|---:|---:|---:|
+| 42 | NeuMF | 0.0791 | 0.0811 | +0.0020 | -0.0003 |
+| 43 | NeuMF | 0.0772 | 0.0826 | +0.0055 | +0.0030 |
+| 44 | Item-CF (implicit) | 0.0762 | 0.0834 | +0.0073 | +0.0021 |
+| 45 | Item-CF (implicit) | 0.0762 | 0.0848 | +0.0086 | +0.0032 |
+| 46 | NeuMF | 0.0773 | 0.0836 | +0.0063 | +0.0012 |
 
-Hybrid achieved:
+Mean Δ HR@10 = **+0.005927 ± 0.002496**,
+with Hybrid ahead in **5/5 seeds**.
 
-- HR@10 = 0.077947 ± 0.005715
-- nDCG@10 = 0.037533 ± 0.003445
-- MRR = 0.036851 ± 0.003854
-- Coverage = 0.401545 ± 0.031280
+Mean Δ nDCG@10 = **+0.001859 ± 0.001415**,
+with Hybrid ahead in **4/5 seeds**.
 
-The Hybrid therefore showed no robust ranking advantage over NeuMF and
-introduced substantially larger pipeline-level variance.
+### Comparison with Frozen V3
 
-This is an end-to-end robustness study rather than a pure neural
-initialization experiment because the seed affects both stochastic
-training and the validation-user sample used for fusion search.
+Frozen V3 and Frozen V4 should not be treated as a one-variable
+controlled comparison.
 
-## Sampled Ranking
+Frozen V4 both:
 
-| Model | HR@10 | nDCG@10 | MRR | AUC |
-| --- | --- | --- | --- | --- |
-| ItemKNN | 0.2248 | 0.1009 | 0.0886 | 0.6292 |
-| Item-CF | 0.6684 | 0.3913 | 0.3224 | 0.8909 |
-| Biased MF | 0.2748 | 0.1484 | 0.1319 | 0.6255 |
-| NeuMF | 0.6917 | 0.4147 | 0.3448 | 0.9046 |
-| Content (TF-IDF) | 0.1972 | 0.1021 | 0.0941 | 0.5280 |
-| Popularity | 0.4730 | 0.2600 | 0.2175 | 0.8221 |
-| Random | 0.1013 | 0.0438 | 0.0497 | 0.5061 |
-| Hybrid | 0.6873 | 0.4136 | 0.3415 | 0.8609 |
+1. replaces the 800-user fusion-search subsample with all 6,040
+   validation users; and
+2. includes the corrected bounded NeuMF negative-sampling implementation.
 
-Sampled evaluation produces much larger absolute ranking metrics than
-full-candidate evaluation and can change the apparent relative strength
-of different recommenders.
+A separate fixed-score diagnostic isolates validation-user subsampling
+and shows that this factor alone is sufficient to generate substantial
+fusion-selection variance.
 
-For that reason, Frozen V3 uses full-candidate ranking as the primary
-benchmark.
-
-Across five seeds, NeuMF sampled AUC was:
-
-0.905311 ± 0.000531
-
-The retired historical AUC 0.9127 is not comparable because it was
-affected by the legacy candidate-set and popularity-scaling defects.
-
-## Rating Prediction
-
-Explicit-rating regression is evaluated separately from Top-N ranking.
-
-| Model | MAE | RMSE |
+| Metric | Frozen V3 | Mac Frozen V4 |
 |---|---:|---:|
-| Global mean baseline | 0.9893 | 1.1756 |
-| ItemKNN | 0.7382 | 0.9569 |
-| Biased MF | 0.7175 | 0.9083 |
+| Hybrid HR@10 | 0.077947 ± 0.005715 | **0.083113 ± 0.001350** |
+| Hybrid nDCG@10 | 0.037533 ± 0.003445 | **0.040153 ± 0.000696** |
+| Hybrid HR wins vs best single | no mean advantage | **5/5 seeds** |
+| Mean paired Δ HR@10 | -0.000497 | **+0.005927** |
 
-Biased MF is optimized for explicit rating prediction, whereas NeuMF is
-optimized for implicit-feedback ranking with negative sampling and
-Binary Cross-Entropy.
+Because the V4 methodology revision was made after earlier test results
+had already been inspected, this is an engineering benchmark revision,
+not a fresh unbiased holdout comparison.
 
-The gap between their Top-N metrics therefore demonstrates an
-**objective mismatch**, not a controlled proof that one architecture is
-intrinsically superior.
+## Sampled protocol (1 positive + 99 negatives), five-seed means
 
-A cleaner architecture comparison would require an implicit-feedback
-MF baseline such as BPR-MF or iALS.
+| System | HR@10 | nDCG@10 | AUC |
+|---|---:|---:|---:|
+| Random | 0.098344 | 0.044308 | 0.501331 |
+| Content (TF-IDF) | 0.198113 | 0.103066 | 0.528413 |
+| ItemKNN (rating) | 0.223974 | 0.100891 | 0.628767 |
+| Biased MF | 0.273245 | 0.145931 | 0.625161 |
+| Popularity | 0.472152 | 0.261052 | 0.822050 |
+| Item-CF (implicit) | 0.667086 | 0.391877 | 0.891191 |
+| NeuMF | 0.694139 | 0.414196 | **0.904780** |
+| **Hybrid** | **0.698675** | **0.420693** | 0.879928 |
 
-## Fusion Weights
+The sampled protocol is secondary. It is useful for diagnostic
+comparability, but it is not interchangeable with the primary
+full-candidate ranking protocol.
 
-Validation-selected weights across seeds:
+## Fusion weights
 
 | Seed | ItemKNN | Item-CF | MF | NeuMF | Content |
-| --- | --- | --- | --- | --- | --- |
-| 42 | 0.2 | 0.1 | 0.1 | 0.5 | 0.1 |
-| 43 | 0.2 | 0.2 | 0.2 | 0.1 | 0.3 |
-| 44 | 0.1 | 0.2 | 0.2 | 0.4 | 0.1 |
-| 45 | 0.0 | 0.1 | 0.1 | 0.6 | 0.2 |
-| 46 | 0.0 | 0.2 | 0.0 | 0.7 | 0.1 |
+|---:|---:|---:|---:|---:|---:|
+| 42 | 0.0 | 0.1 | 0.1 | 0.6 | 0.2 |
+| 43 | 0.0 | 0.2 | 0.0 | 0.7 | 0.1 |
+| 44 | 0.0 | 0.2 | 0.0 | 0.6 | 0.2 |
+| 45 | 0.0 | 0.2 | 0.0 | 0.6 | 0.2 |
+| 46 | 0.0 | 0.2 | 0.0 | 0.6 | 0.2 |
 
-The weights vary materially across seeds.
+ItemKNN receives zero weight in all five Mac seeds.
 
-Paired Hybrid minus NeuMF differences:
+Biased MF receives zero weight in four seeds and 0.1 only in seed 42.
 
-| Metric | Mean Hybrid - NeuMF | SD |
-| --- | --- | --- |
-| HR@10 | -0.000497 | 0.005520 |
-| nDCG@10 | -0.001819 | 0.003553 |
-| MRR | -0.002565 | 0.004022 |
-| Coverage | -0.055061 | 0.029327 |
+The dominant contributors are NeuMF, Item-CF and Content.
 
-These descriptive results do not support claiming that fusion
-consistently improves ranking quality.
+The result supports a benchmark-specific distinction between explicit
+rating-prediction quality and incremental Top-N ranking utility. It is
+not a universal claim about rating-based models.
 
-No formal statistical-significance claim is made from five seeds.
+## Rating prediction (test split, no leakage)
 
-## Popularity / Exposure Ablation
+| Model | MAE | MSE | RMSE | NMAE | NRMSE |
+|---|---:|---:|---:|---:|---:|
+| Global mean (baseline) | 0.9893 | 1.3820 | 1.1756 | 0.2473 | 0.2939 |
+| ItemKNN | 0.7382 | 0.9157 | 0.9569 | 0.1846 | 0.2392 |
+| **Biased MF** | **0.7175** | **0.8250** | **0.9083** | **0.1794** | **0.2271** |
 
-Canonical seed-42 ablation:
+Biased MF is the best rating predictor here and receives zero fusion
+weight for ranking. NeuMF is trained on implicit feedback and outputs
+interaction probabilities, so it is excluded from rating metrics by
+design rather than omitted.
 
-| 设置 | Precision@10 | Recall@10 | F1@10 | nDCG@10 | HR@10 | MRR | MedianRank | Coverage | CoveredItems | Diversity | Novelty | Gini | Top1%ItemShare | EvalUsers |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 修正公式 alpha=0.0 | 0.0079 | 0.0791 | 0.0144 | 0.0383 | 0.0791 | 0.0378 | 157.0000 | 0.3724 | 1446.0000 | 0.7094 | 2.3532 | 0.9067 | 0.3011 | 6040.0000 |
-| 修正公式 alpha=0.05 | 0.0080 | 0.0796 | 0.0145 | 0.0385 | 0.0796 | 0.0378 | 158.0000 | 0.3873 | 1504.0000 | 0.7053 | 2.3996 | 0.9010 | 0.2880 | 6040.0000 |
-| 修正公式 alpha=0.1 | 0.0080 | 0.0796 | 0.0145 | 0.0382 | 0.0796 | 0.0374 | 157.0000 | 0.4028 | 1564.0000 | 0.7009 | 2.4493 | 0.8948 | 0.2747 | 6040.0000 |
-| 修正公式 alpha=0.2 | 0.0078 | 0.0781 | 0.0142 | 0.0372 | 0.0781 | 0.0365 | 158.0000 | 0.4394 | 1706.0000 | 0.6922 | 2.5538 | 0.8813 | 0.2494 | 6040.0000 |
-| 修正公式 alpha=0.4 | 0.0073 | 0.0732 | 0.0133 | 0.0344 | 0.0732 | 0.0339 | 182.0000 | 0.5241 | 2035.0000 | 0.6730 | 2.8215 | 0.8446 | 0.1971 | 6040.0000 |
-| 原实现公式 score*(1-0.2*pop) | 0.0002 | 0.0022 | 0.0004 | 0.0014 | 0.0022 | 0.0019 | 3534.0000 | 0.3049 | 1184.0000 | 0.6653 | 3.1349 | 0.9246 | 0.3640 | 6040.0000 |
+## Popularity / exposure trade-off (seed 42)
 
-The popularity experiment compares alpha values within the same Hybrid
-system.
+Mac canonical seed-42 artifact:
 
-It therefore supports an accuracy / exposure trade-off interpretation,
-but it should not be used to infer that Hybrid must achieve higher
-Coverage than NeuMF.
+| Setting | HR@10 | nDCG@10 | Coverage | Diversity | Novelty | Gini |
+|---|---:|---:|---:|---:|---:|---:|
+| alpha=0.0 | 0.0808 | 0.0394 | 0.4066 | 0.6894 | 2.4465 | 0.8923 |
+| alpha=0.05 | 0.0808 | 0.0391 | 0.4218 | 0.6852 | 2.4940 | 0.8860 |
+| alpha=0.1 | 0.0811 | 0.0392 | 0.4399 | 0.6804 | 2.5469 | 0.8789 |
+| alpha=0.2 | 0.0805 | 0.0384 | 0.4759 | 0.6718 | 2.6557 | 0.8637 |
+| alpha=0.4 | 0.0760 | 0.0362 | 0.5555 | 0.6524 | 2.9159 | 0.8254 |
+| 原实现公式 score*(1-0.2*pop) | 0.0023 | 0.0011 | 0.3178 | 0.6114 | 2.9642 | 0.9098 |
 
-Alpha = 0.10 remained the frozen default and was not retuned after
-inspecting test results.
+Alpha = 0.10 remains the pre-existing default. It was not retuned after
+Frozen V4 test inspection.
 
-## Controlled Legacy-Bug Ablation
+## Controlled reproduction of the legacy defects (seed 42)
 
-| 热度惩罚 bug | 候选集 bug | 对应版本 | Precision@10 | Recall@10 | F1@10 | nDCG@10 | HR@10 | AUC | Coverage | CoveredItems | Novelty | 正例在候选集内比例 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 关 | 关 | 本实现 | 0.0067 | 0.0666 | 0.0121 | 0.0312 | 0.0666 | 0.8257 | 0.3693 | 1434.0000 | 2.3504 | 1.0000 |
-| 开 | 关 | 单 bug 对照 | 0.0000 | 0.0002 | 0.0000 | 0.0002 | 0.0002 | 0.1543 | 0.0577 | 224.0000 | 12.5602 | 1.0000 |
-| 关 | 开 | 单 bug 对照 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.3693 | 1434.0000 | 2.3527 | 0.0000 |
-| 开 | 开 | 原实现 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.8677 | 0.0577 | 224.0000 | 12.5602 | 0.0000 |
+Same data split, same trained models; only the two legacy defects are
+toggled.
 
-The controlled ablation demonstrates why the historical AUC could look
-strong even when the held-out positive was structurally absent from the
-candidate set.
+| Popularity defect | Candidate defect | Version | P@10 | HR@10 | nDCG@10 | AUC | Positive in candidates |
+|:---:|:---:|---|---:|---:|---:|---:|---:|
+| off | off | current | 0.0067 | 0.0671 | 0.0310 | 0.8285 | 100% |
+| on | off | control | 0.0000 | 0.0002 | 0.0002 | 0.1545 | 100% |
+| off | on | control | 0.0000 | 0.0000 | 0.0000 | 0.0000 | **0%** |
+| on | on | legacy | **0.0000** | **0.0000** | **0.0000** | **0.8677** | **0%** |
 
-Candidate construction and score scaling therefore had to be audited
-before model quality could be interpreted.
+The bottom row reproduces the legacy behaviour: five ranking metrics
+pinned at exactly zero while AUC reads 0.8677. AUC is high only when
+*both* defects are active — with the candidate defect alone it is 0.0000.
+The mechanism is that an excluded positive falls back to a default score
+of 0 while negatives, scaled by the inverted popularity term, are
+negative. This is a property of the defects, not of any model, and does
+not change with more compute.
 
-## Exact-Score Tie Audit
+## Runtime
 
-Frozen V2 ItemKNN reported:
+Runtime is environment-dependent and is therefore not used as a
+cross-platform headline benchmark.
 
-- HR@10 = 0.0190397351
-- nDCG@10 = 0.0190397351
+The canonical Frozen V4 artifact was produced on macOS / Apple Silicon
+using CPU execution.
 
-A targeted diagnostic found:
+Full-validation fusion search is intentionally more expensive than the
+earlier 800-user search because it evaluates all 6,040 validation users
+across the full weight grid.
 
-- total Top-10 hits = 115
-- rank-1 hits = 115
-- hits inside exact-score ties = 115 / 115
-- unique positive scores = 0 / 115
-- median tie-block size = 72
-- maximum tie-block size = 666
+Per-stage timing metadata for the canonical seed-42 run is preserved in
+`results/frozen_v4/metrics_seed42.json`.
 
-The previous evaluator counted only candidates whose scores were
-strictly greater than the positive score. That assigned the positive
-the best possible position inside every exact-score tie block.
+## Cross-platform reproducibility
 
-After applying one deterministic ranking rule everywhere, canonical
-ItemKNN became approximately:
+A separate Linux CPU replication is preserved locally as an audit
+reference, while the public Frozen V4 canonical artifact is the Mac CPU
+run.
 
-- HR@10 = 0.005629
-- nDCG@10 = 0.002730
+| System / metric | Linux reference | Mac canonical |
+|---|---:|---:|
+| Hybrid HR@10 | 0.083940 | 0.083113 |
+| Hybrid nDCG@10 | 0.040986 | 0.040153 |
+| NeuMF HR@10 | 0.077815 | 0.076623 |
+| NeuMF nDCG@10 | 0.039022 | 0.038415 |
 
-This is why Frozen V2 ranking metrics are superseded rather than silently
-overwritten.
+The deterministic classical components reproduced consistently.
 
-## Tests
+NeuMF does not reproduce bit-for-bit because small floating-point
+differences alter validation trajectories and therefore early-stopping
+checkpoints. Hybrid also moves slightly because it includes NeuMF.
 
-The frozen codebase passes:
+The qualitative Frozen V4 conclusion remained consistent across the two
+environments.
 
-`19 passed`
-
-Regression and invariant tests cover temporal split correctness,
-candidate-set validity, information boundaries, ranking sanity checks,
-popularity-penalty behavior, NeuMF negative sampling and deterministic
-exact-score tie handling.
-
-## Reproducibility
-
-Canonical configuration:
-
-`python run.py --data-dir data/ml-1m --out-dir outputs/reproduce_v3 --seed 42 --neumf-epochs 25 --ablation --bug-ablation`
-
-Evidence is stored under:
-
-`results/frozen_v3/`
-
-The evidence bundle contains canonical metrics, multi-seed metrics,
-fusion weights, controlled ablations, tie-audit evidence, environment
-information, test output and SHA-256 checksums.
-
-## Limitations
-
-- Offline MovieLens evaluation is not evidence of production impact.
-- Five seeds provide descriptive robustness evidence, not a formal
-  significance study.
-- Pipeline seed changes both stochastic training and the validation
-  sample used during fusion search.
-- Biased MF and NeuMF optimize different objectives.
-- SBERT was not enabled in Frozen V3.
-- No dedicated cold-start benchmark is included.
-- No leave-one-signal-out experiment isolates the causal contribution
-  of the Content component.
-
-## Final Conclusions
-
-1. Evaluation correctness was more important than adding model
-   complexity.
-2. NeuMF was the strongest mean individual full-candidate ranker across
-   the five evaluated seeds.
-3. Item-CF remained a strong deterministic classical baseline.
-4. Validation-selected Hybrid did not demonstrate a robust advantage
-   over NeuMF.
-5. Sampled and full-candidate evaluation are not interchangeable.
-6. Rating prediction and Top-N ranking should be treated as different
-   objectives.
-7. Candidate-set, popularity-scaling and exact-score tie defects were
-   converted into explicit regression tests.
-8. Frozen V3 is the final audited benchmark for this project; no further
-   model tuning is performed after this freeze.
+The repository therefore distinguishes **reproducible procedure** from
+**bit-for-bit neural reproducibility** rather than claiming the latter.

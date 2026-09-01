@@ -37,6 +37,14 @@ def parse_args(argv=None) -> argparse.Namespace:
     p.add_argument("--pop-alpha", type=float, default=None, help="热度惩罚强度 [0,1]")
     p.add_argument("--normalize", choices=["zscore", "minmax", "rank"], default=None)
     p.add_argument("--no-weight-search", action="store_true")
+    p.add_argument("--search-users", type=int, default=None,
+                   help="参与权重搜索的验证用户数；0 表示全部（默认）")
+    p.add_argument("--search-objective", choices=["full", "sampled"], default=None,
+                   help="权重搜索目标：full=全候选 nDCG@10（默认，与主协议一致）；"
+                        "sampled=1正+99负的低方差代理目标")
+    p.add_argument("--device", choices=["cpu", "auto", "mps", "cuda"], default="cpu",
+                   help="PyTorch 设备。默认 cpu 以保证跨平台数值可比；"
+                        "Apple Silicon 上用 auto 更快，但 NeuMF 早停点可能改变")
     p.add_argument("--neumf-epochs", type=int, default=None)
     p.add_argument("--mf-epochs", type=int, default=None)
     p.add_argument("--use-sbert", action="store_true", help="启用 SBERT 语义特征（需联网）")
@@ -57,6 +65,11 @@ def build_config(a: argparse.Namespace) -> Config:
         cfg.fusion.normalize = a.normalize
     if a.no_weight_search:
         cfg.fusion.search_weights = False
+    if a.search_users is not None:
+        cfg.fusion.search_users = a.search_users
+    if a.search_objective:
+        cfg.fusion.search_objective = a.search_objective
+    cfg.device = a.device
     if a.neumf_epochs is not None:
         cfg.neumf.epochs = a.neumf_epochs
     if a.mf_epochs is not None:

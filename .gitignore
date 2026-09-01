@@ -38,7 +38,10 @@ outputs/
 !.env.example
 
 # Local audit / development snapshots
-pre_git_audit.txt
-final_project_snapshot.txt
-*_audit.txt
-*_snapshot.txt
+# NOTE: these patterns are anchored to the repository root on purpose.
+# An unanchored `*_audit.txt` also matched results/frozen_v3/tie_audit.txt,
+# which is a published artifact referenced by SHA256SUMS.txt and the README.
+/pre_git_audit.txt
+/final_project_snapshot.txt
+/*_audit.txt
+/*_snapshot.txt

@@ -37,6 +37,7 @@ from __future__ import annotations
 
 import itertools
 import logging
+import time
 from typing import Callable, Dict, List
 
 import numpy as np
@@ -174,35 +175,75 @@ class HybridFusion:
     def search_weights(self, scores: Dict[str, np.ndarray], ds: Dataset,
                        objective: Callable[[np.ndarray, np.ndarray], float],
                        rng: np.random.Generator) -> Dict[str, float]:
-        """在**验证集**上网格搜索权重（原实现的权重是硬编码的，从未真正搜过）。
+        """在**验证集**上网格搜索融合权重。
 
-        objective(fused_scores_subset, target_items) -> 越大越好（这里用 nDCG@10）。
-        为控制耗时，只在采样用户的子矩阵上评估。
+        搜索只使用验证集；测试集在整个模型选择过程中从不参与。
+
+        默认在全部验证用户上评估（``search_users = 0``）。早期版本只用 800 位
+        采样用户，导致选择过程本身过拟合——受控实验（固定同一批打分矩阵、
+        只重采验证用户子集）显示，模型参数一字未变，选出的 NeuMF 权重却在
+        0.2 ~ 1.0 之间摆动。详见 ``config.FusionConfig`` 的说明与
+        ``experiments/weight_search_stability.py``。
+
+        objective(fused_scores, target_items) -> 越大越好。
+        当 ``search_objective == "sampled"`` 时，改用 1 正 + 99 负的低方差
+        代理目标，此时忽略传入的 objective。
         """
         names = [k for k in scores if self.cfg.weights.get(k, 0.0) is not None]
         step = self.cfg.search_step
         grid = np.round(np.arange(0.0, 1.0 + 1e-9, step), 4)
 
-        # 采样用户 + 只保留这些用户的行，把搜索代价降到可接受范围
         v_u = ds.valid["u"].to_numpy()
         v_i = ds.valid["i"].to_numpy()
-        k = min(self.cfg.search_users, len(v_u))
-        sel = rng.choice(len(v_u), size=k, replace=False)
-        su, si = v_u[sel], v_i[sel]
+        valid_mask = self.candidate_mask(ds, target="valid")
 
-        sub = {n: scores[n][su] for n in names}
-        sub_ds_mask = self.candidate_mask(ds, target="valid")[su]
+        n_all = len(v_u)
+        k = n_all if self.cfg.search_users <= 0 else min(self.cfg.search_users, n_all)
+        if k < n_all:
+            sel = rng.choice(n_all, size=k, replace=False)
+            su, si = v_u[sel], v_i[sel]
+            sub_mask = valid_mask[su]
+            sub = {n: scores[n][su] for n in names}
+        else:
+            su, si = v_u, v_i
+            sub_mask = valid_mask[su]
+            sub = {n: scores[n][su] for n in names}
+
+        # 采样负例代理目标：为每位验证用户预先抽好固定的 99 个负例，
+        # 保证所有权重组合面对同一批负例，比较才是公平的。
+        neg_items = None
+        if self.cfg.search_objective == "sampled":
+            n_neg = 99
+            neg_items = np.empty((k, n_neg), dtype=np.int64)
+            for r in range(k):
+                pool = np.flatnonzero(sub_mask[r])
+                pool = pool[pool != si[r]]
+
+                if pool.size == 0:
+                    raise ValueError(
+                        f"Validation user row {r} has no valid negative candidates."
+                    )
+
+                neg_items[r] = rng.choice(
+                    pool,
+                    size=n_neg,
+                    replace=pool.size < n_neg,
+                )
+        elif self.cfg.search_objective != "full":
+            raise ValueError(f"未知的 search_objective：{self.cfg.search_objective}")
 
         combos: List[tuple] = [
             c for c in itertools.product(grid, repeat=len(names))
             if abs(sum(c) - 1.0) < 1e-6
         ]
-        logger.info("[fusion] 权重网格搜索：%d 种组合 × %d 位验证用户", len(combos), k)
+        logger.info("[fusion] 权重网格搜索：%d 种组合 × %d 位验证用户（目标=%s）",
+                    len(combos), k, self.cfg.search_objective)
 
         best_w, best_v = dict(self.weights), -np.inf
         pop = self.popularity_norm(ds)
-        norm_cache = {n: normalize_scores(sub[n], sub_ds_mask, self.cfg.normalize)
+        norm_cache = {n: normalize_scores(sub[n], sub_mask, self.cfg.normalize)
                       for n in names}
+        t0 = time.time()
 
         for combo in combos:
             w = dict(zip(names, combo))
@@ -211,16 +252,38 @@ class HybridFusion:
                 if wi:
                     total += np.float32(wi) * norm_cache[n]
             if self.cfg.popularity_alpha > 0:
-                lo = np.where(sub_ds_mask, total, np.inf).min(axis=1, keepdims=True)
-                hi = np.where(sub_ds_mask, total, -np.inf).max(axis=1, keepdims=True)
+                lo = np.where(sub_mask, total, np.inf).min(axis=1, keepdims=True)
+                hi = np.where(sub_mask, total, -np.inf).max(axis=1, keepdims=True)
                 total = (total - lo) / np.maximum(hi - lo, 1e-8)
                 total = total - np.float32(self.cfg.popularity_alpha) * pop[None, :]
-            total = np.where(sub_ds_mask, total, -np.inf)
-            v = objective(total, si)
+            total = np.where(sub_mask, total, -np.inf)
+
+            if neg_items is None:
+                v = objective(total, si)
+            else:
+                v = _sampled_ndcg(total, si, neg_items)
+
             if v > best_v:
                 best_v, best_w = v, w
 
-        logger.info("[fusion] 最优权重 %s（验证 nDCG@10=%.4f）",
-                    {k: round(v, 2) for k, v in best_w.items()}, best_v)
+        logger.info("[fusion] 最优权重 %s（验证目标值=%.4f，耗时 %.0fs）",
+                    {k2: round(v2, 2) for k2, v2 in best_w.items()},
+                    best_v, time.time() - t0)
         self.weights = best_w
+        self.search_objective_value_ = best_v
         return best_w
+
+
+def _sampled_ndcg(scores: np.ndarray, pos: np.ndarray, negs: np.ndarray,
+                  top_n: int = 10) -> float:
+    """1 正 + N 负协议下的 nDCG@10，作为权重搜索的低方差代理目标。
+
+    并列规则与 evaluate.positive_rank 保持一致：
+    分数降序，完全同分时物品内部索引升序。
+    """
+    cand = np.concatenate([pos[:, None], negs], axis=1)
+    s = np.take_along_axis(scores, cand, axis=1)
+    worse = ((s[:, 1:] > s[:, :1])
+             | ((s[:, 1:] == s[:, :1]) & (cand[:, 1:] < pos[:, None])))
+    rank = worse.sum(axis=1)
+    return float(np.where(rank < top_n, 1.0 / np.log2(rank + 2.0), 0.0).mean())

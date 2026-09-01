@@ -35,6 +35,7 @@ from torch import nn
 
 from ..config import NeuMFConfig
 from ..data import Dataset
+from ..device import resolve_device
 from .base import BaseRecommender
 
 logger = logging.getLogger(__name__)
@@ -70,7 +71,7 @@ class NeuMFRecommender(BaseRecommender):
 
     def __init__(self, cfg: NeuMFConfig, device: str = "cpu", seed: int = 0):
         self.cfg = cfg
-        self.device = torch.device(device)
+        self.device = resolve_device(device)
         self.seed = seed
 
     # ------------------------------------------------------------ 负采样
@@ -107,28 +108,62 @@ class NeuMFRecommender(BaseRecommender):
         blocked: list[set[int]],
         rng: np.random.Generator,
     ) -> np.ndarray:
-        """为每个正样本采 k 个不属于该用户已知正交互集合的负样本。"""
+        """为每个正样本采 k 个不属于该用户已知正交互集合的负样本。
+
+        两段式策略，兼顾速度与正确性：
+
+        1. **快路径**——均匀采样，然后只对撞上历史的位置重采，至多
+           ``max_rounds`` 轮。训练集稠密度仅 4.2%，一轮之后残留冲突通常
+           已低于 0.2%，因此绝大多数样本在这里就完成了。
+        2. **兜底**——对仍然冲突的少数位置，逐用户从"未交互物品"的精确
+           补集中采样。
+
+        为什么必须有第 2 步：早期版本用无上界的 ``while True`` 一直重采到
+        零冲突为止，遇到交互过全部物品的用户就会死循环；而只加上界、不做
+        兜底又会把这些位置留成伪负例（标签错误的训练样本）。两段式让最坏
+        情况的耗时有界，同时保证返回的每一个负例都是真负例。
+        """
+        max_rounds = 4
         m = len(pos_u) * k
         u_rep = np.repeat(pos_u, k)
         neg = rng.integers(0, n_items, size=m, dtype=np.int64)
 
-        while True:
-            bad = np.fromiter(
-                (int(i) in blocked[int(u)] for u, i in zip(u_rep, neg)),
+        idx = np.arange(m)                       # 当前仍需检查的位置
+        for _ in range(max_rounds):
+            bad_local = np.fromiter(
+                (int(i) in blocked[int(u)] for u, i in zip(u_rep[idx], neg[idx])),
                 dtype=bool,
-                count=m,
+                count=len(idx),
             )
+            idx = idx[bad_local]                 # 只保留仍然冲突的位置
+            if idx.size == 0:
+                return neg
+            neg[idx] = rng.integers(0, n_items, size=idx.size, dtype=np.int64)
 
-            if not bad.any():
-                break
+        # ---- 兜底：按用户分组，从精确补集中采样 ----
+        logger.debug("[neumf] %d/%d (%.4f%%) 个负例进入精确补集兜底",
+                     idx.size, m, idx.size / m * 100)
+        all_items = np.arange(n_items, dtype=np.int64)
+        order = np.argsort(u_rep[idx], kind="stable")
+        idx_sorted = idx[order]
+        users_sorted = u_rep[idx_sorted]
+        bounds = np.flatnonzero(np.diff(users_sorted)) + 1
 
-            neg[bad] = rng.integers(
-                0,
-                n_items,
-                size=int(bad.sum()),
-                dtype=np.int64,
-            )
-
+        for chunk in np.split(idx_sorted, bounds):
+            if chunk.size == 0:
+                continue
+            u = int(u_rep[chunk[0]])
+            pool = np.setdiff1d(all_items,
+                                np.fromiter(blocked[u], dtype=np.int64,
+                                            count=len(blocked[u])),
+                                assume_unique=False)
+            if pool.size == 0:
+                raise ValueError(
+                    f"User {u} has interacted with all {n_items} items; "
+                    "no valid negative candidate exists."
+                )
+            neg[chunk] = rng.choice(pool, size=chunk.size,
+                                    replace=chunk.size > pool.size)
         return neg
 
     def fit(self, ds: Dataset, valid_cb=None) -> "NeuMFRecommender":
@@ -146,6 +181,8 @@ class NeuMFRecommender(BaseRecommender):
                                 weight_decay=cfg.weight_decay)
         lossf = nn.BCEWithLogitsLoss()
         best, best_state, bad = -1.0, None, 0
+        best_epoch, ep = 0, -1
+        self.valid_hr_history_: list[float] = []
 
         # 验证集：每用户 1 个正例 + 99 个负例，监控 HR@10
         v_u, v_pos, v_neg = self._build_valid(ds, rng)
@@ -182,8 +219,10 @@ class NeuMFRecommender(BaseRecommender):
             logger.info("[neumf] epoch %d/%d  bce=%.4f  valid_HR@10=%.4f",
                         ep + 1, cfg.epochs, total / n, hr)
 
+            self.valid_hr_history_.append(hr)
             if hr > best + 1e-4:
                 best, bad = hr, 0
+                best_epoch = ep + 1
                 best_state = {k: v.detach().clone() for k, v in self.model.state_dict().items()}
             else:
                 bad += 1
@@ -194,6 +233,13 @@ class NeuMFRecommender(BaseRecommender):
         if best_state is not None:
             self.model.load_state_dict(best_state)
         self.best_valid_hr_ = best
+        self.best_epoch_ = best_epoch
+        self.stopped_epoch_ = ep + 1
+        # 早停点由验证 HR 的逐轮数值决定，而浮点累加顺序在不同平台/BLAS 上
+        # 会有微小差异，因此这两个数字是跨平台复现比对的关键证据，
+        # 需要一并写进 metrics.json（见 pipeline.train_and_score）。
+        logger.info("[neumf] 最佳轮次 %d（valid HR@10=%.4f），实际训练至第 %d 轮",
+                    best_epoch, best, ep + 1)
         return self
 
     # ------------------------------------------------------------ 验证辅助
