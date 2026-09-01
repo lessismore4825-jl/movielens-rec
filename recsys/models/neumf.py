@@ -248,8 +248,16 @@ class NeuMFRecommender(BaseRecommender):
         uu = torch.as_tensor(np.repeat(u, items.shape[1]), device=dev)
         ii = torch.as_tensor(items.ravel(), device=dev)
         scores = self.model(uu, ii).view(items.shape).cpu().numpy()
-        # 正例位于第 0 列，其排名 = 严格高于它的负例个数
-        rank = (scores[:, 1:] > scores[:, :1]).sum(axis=1)
+        # 与统一评估协议保持一致：
+        # score descending；exact tie 时 internal item index ascending。
+        neg_scores = scores[:, 1:]
+        pos_scores = scores[:, :1]
+
+        rank = (
+            (neg_scores > pos_scores)
+            | ((neg_scores == pos_scores) & (neg < pos[:, None]))
+        ).sum(axis=1)
+
         return float((rank < top_n).mean())
 
     # ------------------------------------------------------------ 全量打分

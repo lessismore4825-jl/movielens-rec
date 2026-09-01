@@ -28,7 +28,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from recsys.config import FusionConfig, ItemKNNConfig, PathConfig   # noqa: E402
 from recsys.data import DataLoader                             # noqa: E402
-from recsys.evaluate import full_ranking_metrics, gini, novelty, positive_rank  # noqa: E402
+from recsys.evaluate import (  # noqa: E402
+    full_ranking_metrics,
+    gini,
+    novelty,
+    positive_rank,
+    top_n_items,
+)
 from recsys.fusion import HybridFusion                         # noqa: E402
 from recsys.models.itemknn import ItemCFImplicitRecommender    # noqa: E402
 from recsys.models.neumf import NeuMFRecommender                # noqa: E402
@@ -154,6 +160,29 @@ def test_worst_ranker_gets_hr_zero(ds):
 def test_positive_rank_is_zero_based(ds):
     scores = np.array([[3.0, 1.0, 2.0], [1.0, 5.0, 9.0]], dtype=np.float32)
     assert positive_rank(scores, np.array([0, 1])).tolist() == [0, 1]
+
+
+def test_exact_score_ties_use_deterministic_item_index_order():
+    """同分不能自动把 held-out positive 当成 tie block 第一名。
+
+    分数为 [0, 1, 1, 1]，positive=item 3。
+    item 1 和 item 2 与它同分且 index 更小，所以 positive 应排第 3
+    （0-based rank=2），与 stable Top-N 排序完全一致。
+    """
+    scores = np.array([[0.0, 1.0, 1.0, 1.0]], dtype=np.float32)
+    pos = np.array([3])
+
+    assert positive_rank(scores, pos).tolist() == [2]
+    assert top_n_items(scores, 3).tolist() == [[1, 2, 3]]
+
+
+def test_tie_policy_does_not_privilege_positive_identity():
+    """改变 positive 的 item index，应按同一个 secondary key 改变其 rank。"""
+    scores = np.array([[5.0, 5.0, 5.0, 1.0]], dtype=np.float32)
+
+    assert positive_rank(scores, np.array([0])).tolist() == [0]
+    assert positive_rank(scores, np.array([1])).tolist() == [1]
+    assert positive_rank(scores, np.array([2])).tolist() == [2]
 
 
 # ---------------------------------------------------------------- 热度惩罚（bug A）

@@ -33,18 +33,41 @@ logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------- 基础工具
 def top_n_items(scores: np.ndarray, top_n: int) -> np.ndarray:
-    """逐行取分数最高的 top_n 个物品索引（按分数降序）。"""
+    """逐行返回 Top-N 物品。
+
+    排序规则固定为：
+      1. score descending
+      2. internal item index ascending for exact ties
+
+    使用 stable sort 保证并列分数的处理与 positive_rank 完全一致，
+    避免 argpartition 在 tie block 中产生未定义/不一致的选择。
+    """
     n = min(top_n, scores.shape[1])
-    part = np.argpartition(-scores, n - 1, axis=1)[:, :n]
-    rows = np.arange(scores.shape[0])[:, None]
-    order = np.argsort(-scores[rows, part], axis=1)
-    return part[rows, order]
+    return np.argsort(-scores, axis=1, kind="stable")[:, :n]
 
 
 def positive_rank(scores: np.ndarray, pos: np.ndarray) -> np.ndarray:
-    """正例在候选集中的 0 起始排名（严格高于它的候选个数）。"""
-    pos_score = scores[np.arange(len(pos)), pos][:, None]
-    return (scores > pos_score).sum(axis=1)
+    """正例在候选集中的 0 起始确定性排名。
+
+    Primary key:
+        score descending
+
+    Secondary key for exact ties:
+        internal item index ascending
+
+    因此与正例同分但 item index 更小的候选会排在正例之前。
+    不能再把所有并列正例自动视为 rank 1。
+    """
+    rows = np.arange(len(pos))
+    pos = np.asarray(pos, dtype=np.int64)
+    pos_score = scores[rows, pos][:, None]
+
+    item_idx = np.arange(scores.shape[1], dtype=np.int64)[None, :]
+
+    strictly_better = scores > pos_score
+    tied_before = (scores == pos_score) & (item_idx < pos[:, None])
+
+    return (strictly_better | tied_before).sum(axis=1)
 
 
 def gini(counts: np.ndarray) -> float:
@@ -149,7 +172,18 @@ def sampled_ranking_metrics(scores: np.ndarray, pos: np.ndarray, ds: Dataset,
             cand[r, take + 1:] = pos[r]      # 极端情况兜底，几乎不会触发
 
     s = np.take_along_axis(scores, cand, axis=1)
-    rank = (s[:, 1:] > s[:, :1]).sum(axis=1)
+
+    # 与 full-candidate 协议使用同一个确定性 tie policy：
+    # score descending；exact tie 时 internal item index ascending。
+    neg_scores = s[:, 1:]
+    pos_scores = s[:, :1]
+    neg_items = cand[:, 1:]
+
+    rank = (
+        (neg_scores > pos_scores)
+        | ((neg_scores == pos_scores) & (neg_items < pos[:, None]))
+    ).sum(axis=1)
+
     hit = (rank < top_n).astype(np.float64)
     ndcg = np.where(rank < top_n, 1.0 / np.log2(rank + 2.0), 0.0)
     # AUC = 正例分数严格高于负例的比例（并列记 0.5）
