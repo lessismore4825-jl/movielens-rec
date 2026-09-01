@@ -69,6 +69,64 @@
 | 0.20 | 0.0781 | 0.0372 | 0.4394 | 2.5538 | 0.8813 |
 | 0.40 | 0.0732 | 0.0344 | 0.5241 | 2.8215 | 0.8446 |
 
+## Methodological Interpretation
+
+### Explicit MF vs implicit NeuMF
+
+The MF and NeuMF results are not a controlled architecture comparison.
+
+- Biased MF optimizes explicit rating prediction.
+- NeuMF optimizes implicit-feedback ranking with BCE and 4 sampled negatives
+  per training positive.
+
+Therefore, the result supports an **objective-mismatch conclusion**:
+low rating RMSE does not guarantee strong Top-N ranking.
+
+It does not establish that neural architecture alone explains NeuMF's ranking
+advantage. An implicit MF baseline such as BPR-MF or iALS would be required
+for that stronger claim.
+
+### Hybrid vs NeuMF
+
+Hybrid HR@10 = 0.0796 and NeuMF HR@10 = 0.0795.
+
+Because Frozen V2 uses a single seed, this difference should be treated as
+effectively tied rather than statistically significant. NeuMF also retains
+higher nDCG@10 and MRR.
+
+### Content contribution
+
+The content model receives weight 0.10 through validation search despite weak
+standalone ranking performance.
+
+This indicates possible complementary information, but no independent causal
+test benefit is claimed because a leave-one-signal-out fusion ablation was
+not run.
+
+### Popularity penalty
+
+The popularity experiment measures the effect of alpha within the same Hybrid
+system.
+
+The relevant comparison is:
+
+- alpha=0.00 -> Coverage 0.3724
+- alpha=0.10 -> Coverage 0.4028
+
+The result supports reduced concentration within Hybrid. It should not be
+interpreted as evidence that Hybrid must exceed NeuMF's Coverage.
+
+### Future robustness extensions
+
+Without changing Frozen V2, the most useful future extensions would be:
+
+1. multi-seed evaluation with mean ± standard deviation;
+2. BPR-MF or iALS as an implicit matrix-factorization baseline;
+3. leave-one-signal-out fusion ablations, especially removing Content.
+
+These are robustness extensions rather than corrections to the current
+Frozen V2 benchmark.
+
 ## Runtime
 
 - MF early stop: epoch 11

@@ -127,6 +127,90 @@ Compared with alpha = 0, catalogue coverage increases from 37.24% to
 
 No parameter was changed after inspecting Frozen V2 test results.
 
+## Methodology Notes
+
+### MF vs NeuMF: objective boundary
+
+Biased MF and NeuMF should not be interpreted as a controlled architecture
+comparison.
+
+Biased MF is trained for explicit rating regression, while NeuMF is trained
+for implicit-feedback ranking with negative sampling and Binary Cross-Entropy.
+The observed gap therefore supports the conclusion that **rating prediction
+and Top-N ranking are different objectives**, but it does not by itself prove
+that the NeuMF architecture is superior to matrix factorization under the same
+implicit-ranking objective.
+
+A stronger architecture-level comparison would require an implicit MF
+baseline such as BPR-MF or iALS.
+
+### NeuMF training configuration
+
+Frozen V2 uses:
+
+- 4 sampled training negatives per positive interaction;
+- GMF dimension: 32;
+- MLP embedding dimension: 32;
+- MLP layers: [64, 32, 16];
+- end-to-end training from scratch;
+- no separate GMF / MLP pretraining;
+- validation HR@10 for early stopping.
+
+The configuration was intended to provide a defensible neural-ranking
+baseline rather than to reproduce or tune for state-of-the-art benchmark
+performance.
+
+### Content signal interpretation
+
+The content recommender is weak as a standalone ranking model but receives a
+0.10 weight from validation-based fusion search.
+
+This should be interpreted only as a **validation-selected complementary
+signal**. Without a leave-one-signal-out ablation, the experiment does not
+establish that the content component independently improves held-out test
+performance.
+
+### Popularity penalty interpretation
+
+The popularity-penalty ablation compares different alpha values **within the
+same Hybrid system**.
+
+For example, Coverage increases from 0.3724 at alpha=0 to 0.4028 at
+alpha=0.10. This shows that the penalty reduces catalogue concentration inside
+the Hybrid system.
+
+It does not imply that Hybrid + penalty must achieve higher Coverage than
+NeuMF, because NeuMF has a different score distribution and recommendation
+policy.
+
+### Statistical robustness
+
+Frozen V2 uses one fixed chronological split and seed.
+
+The 0.0001 HR@10 difference between Hybrid and NeuMF should therefore not be
+interpreted as statistically significant. A future robustness extension would
+report mean ± standard deviation across multiple fixed seeds without
+retuning parameters on the test set.
+
+### Literature context
+
+The project methodology is consistent with several established findings in
+recommender-system research:
+
+- He et al. (2017), *Neural Collaborative Filtering* — NeuMF and implicit
+  negative-sampling formulation.
+- Ferrari Dacrema et al. (2019), *Are We Really Making Much Progress?* —
+  emphasizes the importance of strong, well-tuned classical baselines.
+- Rendle et al. (2020), *Neural Collaborative Filtering vs. Matrix
+  Factorization Revisited* — shows that simpler interaction models can remain
+  highly competitive against neural similarity functions.
+- Krichene & Rendle (2020), *On Sampled Metrics for Item Recommendation* —
+  motivates treating sampled ranking metrics separately from full-catalogue
+  evaluation.
+
+These references provide methodological context rather than evidence that
+Frozen V2 reproduces the exact experimental settings of those papers.
+
 ## Evaluation Audit
 
 Controlled historical evaluation failures are isolated in:
